@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Student Faculty Feedback Portal</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti for Completion Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -21,14 +23,22 @@
           },
           colors: {
             brand: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-              800: '#166534',
-              900: '#14532d',
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
             }
+          },
+          boxShadow: {
+            'soft': '0 4px 24px -2px rgba(16, 185, 129, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04)',
+            'card': '0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.03)'
           }
         }
       }
@@ -36,65 +46,91 @@
   </script>
 
   <style>
-    .fade-enter {
-      animation: fadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .star-btn:active {
-      transform: scale(0.92);
+    .slide-enter {
+      animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .rating-btn {
+      transition: all 0.16s ease-in-out;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .rating-btn:active {
+      transform: scale(0.94);
+    }
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+<body class="bg-gradient-to-br from-slate-50 via-slate-100/70 to-emerald-50/40 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white pb-6">
 
-  <!-- Toast Notification System -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+  <!-- Toast Notification Overlay -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Header -->
-  <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+  <header class="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 transition">
     <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-600/20">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-700 to-emerald-500 text-white flex items-center justify-center shadow-md shadow-brand-700/20">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
         <div>
-          <h1 class="font-bold text-slate-900 text-sm leading-tight tracking-tight">Student Feedback</h1>
-          <p class="text-[11px] text-slate-500 font-medium">Faculty Evaluation System</p>
+          <h1 class="font-extrabold text-slate-900 text-sm sm:text-base leading-tight tracking-tight">Student Feedback</h1>
+          <p class="text-[11px] text-slate-500 font-medium truncate max-w-[190px] sm:max-w-none">Faculty Academic Evaluation</p>
         </div>
       </div>
 
-      <!-- Live Server Indicator -->
-      <div id="server-status" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <!-- Server Status Indicator -->
+      <div id="server-status" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="server-status-label">Ready</span>
+        <span id="server-status-label">Online</span>
       </div>
     </div>
   </header>
 
   <main class="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
 
-    <!-- STATE 0: MANUAL TOKEN / PASTE INPUT -->
-    <div id="screen-token-input" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm fade-enter">
-      <div class="text-center max-w-md mx-auto space-y-3">
-        <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- STATE 0: TOKEN INPUT SCREEN (Manual or pasted full link) -->
+    <div id="screen-token-input" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card slide-enter">
+      <div class="text-center max-w-md mx-auto space-y-4">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto border border-brand-100 shadow-inner">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
           </svg>
         </div>
-        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Enter Survey Token</h2>
-        <p class="text-xs text-slate-500 leading-relaxed">
-          Scan the QR code displayed in your classroom, or paste the survey token below.
-        </p>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Open Feedback Survey</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+            Scan the classroom QR code or paste the survey link / token below to begin.
+          </p>
+        </div>
 
         <form id="token-form" class="space-y-3 pt-2">
-          <input id="manual-token-input" type="text" required placeholder="Paste token e.g. e0c0add3f72c511..."
-            class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-mono text-center focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
-          <button type="submit" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-2">
+          <div class="text-left">
+            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+              Survey URL or Token
+            </label>
+            <input id="manual-token-input" type="text" required placeholder="Paste full link or token e.g. 288cfd89f05..."
+              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
+            <p class="text-[11px] text-slate-400 mt-1.5">
+              Supports full links (e.g. <code>https://.../feedback/288cf...</code>) as well as raw tokens.
+            </p>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 px-5 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white text-xs sm:text-sm font-bold transition shadow-md shadow-brand-700/25 flex items-center justify-center gap-2">
             <span>Load Feedback Form</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
@@ -102,56 +138,75 @@
       </div>
     </div>
 
-    <!-- STATE 1: LOADING SPINNER SCREEN -->
-    <div id="screen-loading" class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm text-center fade-enter">
-      <div class="flex flex-col items-center justify-center space-y-3">
-        <svg class="animate-spin h-8 w-8 text-brand-600" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-        <div class="text-sm font-bold text-slate-800" id="loading-text">Connecting to survey server...</div>
-        <p class="text-xs text-slate-400">Verifying form status and security signatures</p>
+    <div id="screen-loading" class="bg-white rounded-3xl p-10 border border-slate-200/90 shadow-card text-center slide-enter">
+      <div class="flex flex-col items-center justify-center space-y-4">
+        <div class="relative flex items-center justify-center">
+          <div class="w-14 h-14 rounded-full border-4 border-emerald-100 border-t-brand-600 animate-spin"></div>
+          <div class="absolute w-6 h-6 rounded-full bg-brand-500/20 animate-ping"></div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-sm sm:text-base font-bold text-slate-900" id="loading-text">Loading survey questions...</div>
+          <p class="text-xs text-slate-400" id="loading-subtext">Connecting to feedback backend...</p>
+        </div>
+        <!-- Render Free Tier Warmup Notification Banner -->
+        <div id="render-spin-notice" class="hidden max-w-sm mx-auto p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-800 text-left flex items-start gap-2">
+          <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <span class="font-bold">Waking up Render backend:</span> Because the server is hosted on a free cloud tier, the initial request can take 20–40 seconds to spin up. Please hold on!
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- STATE 2: ERROR SCREEN -->
-    <div id="screen-error" class="hidden bg-white rounded-3xl p-8 border border-rose-100 shadow-sm text-center fade-enter">
-      <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+    <div id="screen-error" class="hidden bg-white rounded-3xl p-8 border border-rose-100 shadow-card text-center slide-enter">
+      <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3.5 border border-rose-100">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <h3 id="error-title" class="text-lg font-bold text-slate-900">Survey Unavailable</h3>
-      <p id="error-desc" class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-5 leading-relaxed">The survey form could not be loaded.</p>
-      <div class="flex gap-2 justify-center">
-        <button onclick="setScreen('screen-token-input')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">Enter Token Manually</button>
-        <button onclick="window.location.reload()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">Try Again</button>
+      <h3 id="error-title" class="text-lg sm:text-xl font-bold text-slate-900">Survey Unavailable</h3>
+      <p id="error-desc" class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-6 leading-relaxed">
+        The feedback form could not be retrieved. It may be closed or the token may be incorrect.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
+        <button onclick="setScreen('screen-token-input')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">
+          Paste Another Token
+        </button>
+        <button onclick="window.location.reload()" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+          Retry
+        </button>
       </div>
     </div>
 
-    <!-- STATE 3: STEP 1 - ENROLLMENT NUMBER VERIFICATION -->
-    <div id="screen-enrollment" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm fade-enter">
-      <div class="pb-6 border-b border-slate-100 mb-6">
-        <div class="flex items-center justify-between gap-2">
-          <span id="meta-dept" class="text-[11px] font-bold text-brand-700 uppercase tracking-wider bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">Department</span>
-          <span id="meta-sem" class="text-xs font-semibold text-slate-500">Sem --</span>
+    <div id="screen-enrollment" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card slide-enter">
+      <div class="pb-5 border-b border-slate-100 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span id="meta-dept" class="text-[11px] font-bold text-brand-800 uppercase tracking-wider bg-brand-50 px-3 py-1 rounded-full border border-brand-200/80">
+            Department
+          </span>
+          <span id="meta-sem" class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+            Sem --
+          </span>
         </div>
-        <h2 id="meta-class" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2">Class Feedback Survey</h2>
-        <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
+        <h2 id="meta-class" class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Class Faculty Feedback</h2>
+        <div class="flex items-center gap-3 text-xs text-slate-500 mt-1.5 font-medium">
           <span id="meta-academic-year">AY: --</span>
-          <span>•</span>
-          <span id="meta-faculty-count">0 Instructors</span>
+          <span class="text-slate-300">•</span>
+          <span id="meta-faculty-count">0 Faculty Members</span>
         </div>
       </div>
 
+      <!-- Enrollment Number Input Form -->
       <form id="enrollment-form" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
             Student Enrollment / Roll Number *
           </label>
           <div class="relative">
-            <input id="input-enrollment" type="text" required placeholder="e.g. 2104590123"
-              class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-mono uppercase tracking-wider focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50/50 focus:bg-white transition" />
+            <input id="input-enrollment" type="text" required placeholder="e.g. 2104590123" autocomplete="off"
+              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-sm sm:text-base font-mono uppercase tracking-wider focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
             <div id="enrollment-checking-spinner" class="hidden absolute right-3.5 top-3.5">
               <svg class="animate-spin h-5 w-5 text-brand-600" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -159,14 +214,17 @@
               </svg>
             </div>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-            Your enrollment is only used to verify single submission. Your feedback ratings remain anonymous to faculty.
-          </p>
+          <div class="flex items-start gap-2 mt-2 text-[11px] text-slate-500 leading-relaxed">
+            <svg class="w-4 h-4 text-brand-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Your enrollment ensures one submission per student. Individual teacher ratings remain completely confidential.</span>
+          </div>
         </div>
 
         <button type="submit" id="btn-verify-enrollment"
-          class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 transition duration-150 flex items-center justify-center gap-2">
-          <span>Start Faculty Feedback</span>
+          class="w-full py-4 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-700/25 transition duration-150 flex items-center justify-center gap-2">
+          <span>Begin Faculty Feedback</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
@@ -174,43 +232,54 @@
       </form>
     </div>
 
-    <!-- STATE 4: STEP 2 - FEEDBACK RATING FORM -->
-    <div id="screen-feedback" class="hidden flex flex-col space-y-4 fade-enter">
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+    <div id="screen-feedback" class="hidden flex flex-col space-y-4 slide-enter">
+      
+      <!-- Sticky/Persistent Teacher Progress Header -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs">
         <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
           <span class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-brand-600 animate-pulse"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
             <span>Evaluating Faculty Member</span>
           </span>
-          <span id="teacher-progress-indicator" class="text-brand-700 font-mono text-xs">Teacher 1 of 3</span>
+          <span id="teacher-progress-indicator" class="text-brand-800 font-mono text-xs font-extrabold bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">
+            Teacher 1 of 3
+          </span>
         </div>
         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
           <div id="progress-bar-fill" class="h-2 bg-brand-600 rounded-full transition-all duration-300" style="width: 33%"></div>
         </div>
       </div>
 
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+      <!-- Active Teacher Evaluation Card -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-card space-y-6">
+        
+        <!-- Faculty Meta Info -->
         <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-700 to-emerald-500 text-white font-bold flex items-center justify-center text-lg shadow-sm">
+          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-brand-700 to-emerald-500 text-white font-black flex items-center justify-center text-lg sm:text-xl shadow-md shadow-brand-700/20 shrink-0">
             <span id="active-teacher-initials">--</span>
           </div>
-          <div>
-            <h3 id="active-teacher-name" class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Prof. Name</h3>
-            <p id="active-teacher-subject" class="text-xs text-brand-700 font-semibold mt-0.5">Subject: Software Engineering</p>
+          <div class="min-w-0">
+            <h3 id="active-teacher-name" class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight truncate">Prof. Name</h3>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[11px] font-semibold text-slate-400">Subject:</span>
+              <span id="active-teacher-subject" class="text-xs sm:text-sm text-brand-800 font-bold truncate">Web Development</span>
+            </div>
           </div>
         </div>
 
-        <div id="active-topics-container" class="space-y-6"></div>
+        <!-- Dynamic Questions List -->
+        <div id="active-topics-container" class="space-y-5"></div>
 
+        <!-- Navigation Buttons -->
         <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
           <button type="button" id="btn-prev-teacher"
-            class="hidden px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            class="hidden px-4 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             <span>Previous</span>
           </button>
 
           <button type="button" id="btn-next-teacher"
-            class="ml-auto px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 transition flex items-center gap-2">
+            class="ml-auto px-6 py-3.5 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-700/25 transition flex items-center gap-2">
             <span id="next-btn-text">Next Teacher</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
@@ -218,49 +287,52 @@
       </div>
     </div>
 
-    <!-- STATE 5: SUCCESS STATE -->
-    <div id="screen-success" class="hidden bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm text-center fade-enter">
-      <div class="w-16 h-16 rounded-3xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4 border border-brand-200">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div id="screen-success" class="hidden bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-card text-center slide-enter">
+      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4 border border-brand-200 shadow-sm">
+        <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h2 class="text-2xl font-black text-slate-900 tracking-tight">Feedback Submitted!</h2>
-      <p class="text-xs text-slate-500 max-w-sm mx-auto mt-2 leading-relaxed">
-        Thank you for submitting your evaluation. Your genuine response directly aids in maintaining high academic standards.
+      <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Feedback Submitted!</h2>
+      <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-2 leading-relaxed">
+        Thank you for submitting your evaluation. Your honest ratings directly assist our department in maintaining academic excellence.
       </p>
 
-      <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/60 max-w-xs mx-auto text-left text-xs space-y-1">
-        <div class="flex justify-between text-slate-500">
-          <span>Enrollment:</span>
-          <span id="success-enrollment" class="font-mono font-bold text-slate-800">--</span>
+      <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 max-w-xs mx-auto text-left text-xs space-y-2">
+        <div class="flex justify-between items-center text-slate-500">
+          <span>Student Enrollment:</span>
+          <span id="success-enrollment" class="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">--</span>
         </div>
-        <div class="flex justify-between text-slate-500">
-          <span>Date & Time:</span>
+        <div class="flex justify-between items-center text-slate-500">
+          <span>Submitted At:</span>
           <span id="success-timestamp" class="font-medium text-slate-800">--</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-500">
+          <span>Status:</span>
+          <span class="font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Verified & Recorded</span>
         </div>
       </div>
 
-      <div class="mt-8">
-        <button onclick="window.close()" class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition">
-          Done
+      <div class="mt-8 flex justify-center">
+        <button onclick="window.close()" class="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm">
+          Close Window
         </button>
       </div>
     </div>
 
   </main>
 
-  <footer class="mt-auto py-4 px-4 border-t border-slate-200/80 bg-white text-center text-xs text-slate-500">
-    <div class="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+  <footer class="mt-auto pt-6 pb-2 px-4 border-t border-slate-200/70 bg-white/50 text-center text-xs text-slate-500">
+    <div class="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 font-medium">
       <div>© Maulana Azad Polytechnic, Solapur • Student Portal</div>
-      <div class="font-medium text-emerald-800">معاویہ 『AM』</div>
+      <div class="text-emerald-800 font-bold">معاویہ 『AM』</div>
     </div>
   </footer>
 
   <script>
     /**
      * STUDENT FEEDBACK CLIENT APP
-     * API: https://feedback-297a.onrender.com
+     * Target API Backend: https://feedback-297a.onrender.com
      */
     const API_BASE = 'https://feedback-297a.onrender.com';
 
@@ -272,27 +344,110 @@
       responses: {}
     };
 
+    // Label mapping for 1-5 ratings
+    const RATING_LABELS = {
+      1: 'Unsatisfactory',
+      2: 'Satisfactory',
+      3: 'Good',
+      4: 'Very Good',
+      5: 'Excellent'
+    };
+
+    const RATING_EMOJIS = {
+      1: '😞',
+      2: '😐',
+      3: '🙂',
+      4: '😊',
+      5: '🌟'
+    };
+
+    /**
+     * Robust Token Extractor:
+     * Parses tokens directly from any format:
+     * - https://feedback-theta-pearl-86.vercel.app/feedback/288cfd89f05618366a88d9d4e3d24856fdd68831640aeec2
+     * - /feedback/288cfd...
+     * - ?token=288cfd...
+     * - #/feedback/288cfd... or #288cfd...
+     * - Raw hex strings (24 to 64 chars)
+     */
+    function extractTokenFromText(rawText) {
+      if (!rawText) return null;
+      rawText = rawText.trim();
+
+      // 1. Matches /feedback/<token>
+      const matchFeedback = rawText.match(/\/feedback\/([a-f0-9]{24,64})/i);
+      if (matchFeedback && matchFeedback[1]) {
+        return matchFeedback[1].toLowerCase();
+      }
+
+      // 2. Query param ?token=<token>
+      const matchParam = rawText.match(/[?&]token=([a-f0-9]{24,64})/i);
+      if (matchParam && matchParam[1]) {
+        return matchParam[1].toLowerCase();
+      }
+
+      // 3. Hash route #token=<token> or #<token>
+      const matchHash = rawText.match(/#(?:\/feedback\/)?(?:token=)?([a-f0-9]{24,64})/i);
+      if (matchHash && matchHash[1]) {
+        return matchHash[1].toLowerCase();
+      }
+
+      // 4. Raw hex string match
+      const rawHexMatch = rawText.match(/^[a-f0-9]{24,64}$/i);
+      if (rawHexMatch) {
+        return rawHexMatch[0].toLowerCase();
+      }
+
+      return null;
+    }
+
+    function detectTokenFromLocation() {
+      // 1. First check window.location.href completely
+      const fromHref = extractTokenFromText(window.location.href);
+      if (fromHref) return fromHref;
+
+      // 2. Check window.location.pathname
+      const fromPath = extractTokenFromText(window.location.pathname);
+      if (fromPath) return fromPath;
+
+      // 3. Check search params
+      const searchParams = new URLSearchParams(window.location.search);
+      const tokenQuery = searchParams.get('token');
+      if (tokenQuery) {
+        const fromQuery = extractTokenFromText(tokenQuery);
+        if (fromQuery) return fromQuery;
+      }
+
+      // 4. Check hash
+      if (window.location.hash) {
+        const fromHash = extractTokenFromText(window.location.hash);
+        if (fromHash) return fromHash;
+      }
+
+      return null;
+    }
+
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       
       const typeStyles = {
-        success: 'bg-emerald-700 text-white shadow-emerald-700/30',
-        error: 'bg-rose-600 text-white shadow-rose-600/30',
-        info: 'bg-slate-800 text-white shadow-slate-800/30',
-        warning: 'bg-amber-600 text-white shadow-amber-600/30'
+        success: 'bg-emerald-800 text-white shadow-emerald-800/30 border border-emerald-600',
+        error: 'bg-rose-700 text-white shadow-rose-700/30 border border-rose-600',
+        info: 'bg-slate-900 text-white shadow-slate-900/30 border border-slate-700',
+        warning: 'bg-amber-600 text-white shadow-amber-600/30 border border-amber-500'
       };
 
-      toast.className = `p-3 rounded-xl shadow-lg text-xs font-semibold flex items-center justify-between pointer-events-auto fade-enter ${typeStyles[type] || typeStyles.info}`;
+      toast.className = `p-3.5 rounded-2xl shadow-xl text-xs font-semibold flex items-center justify-between pointer-events-auto slide-enter ${typeStyles[type] || typeStyles.info}`;
       toast.innerHTML = `
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
           <span>${escapeHtml(message)}</span>
         </div>
-        <button class="ml-3 hover:opacity-75 font-bold" onclick="this.parentElement.remove()">✕</button>
+        <button class="ml-3 hover:opacity-75 font-bold text-sm px-1" onclick="this.parentElement.remove()">✕</button>
       `;
 
       container.appendChild(toast);
-      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4000);
+      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4500);
     }
 
     function escapeHtml(str) {
@@ -304,6 +459,10 @@
         '"': '&quot;',
         "'": '&#39;'
       }[m]));
+    }
+
+    function escapeQuotes(str) {
+      return (str || '').replace(/'/g, "\\'");
     }
 
     function setScreen(screenId) {
@@ -328,54 +487,28 @@
       });
     }
 
-    /**
-     * Multi-strategy Token Detector:
-     * 1. Path: /feedback/:token
-     * 2. Query param: ?token=xxx
-     * 3. Hash: #token=xxx or #xxx
-     */
-    function detectPublicToken() {
-      // 1. Query parameter ?token=xxx
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('token')) {
-        return params.get('token').trim();
-      }
-
-      // 2. Pathname: /feedback/:token
-      const pathParts = window.location.pathname.split('/').filter(Boolean);
-      const feedbackIndex = pathParts.indexOf('feedback');
-      if (feedbackIndex !== -1 && pathParts[feedbackIndex + 1]) {
-        return pathParts[feedbackIndex + 1].trim();
-      }
-
-      // If last segment looks like a 24-48 hex char token
-      const lastSegment = pathParts[pathParts.length - 1];
-      if (lastSegment && /^[a-f0-9]{24,64}$/i.test(lastSegment)) {
-        return lastSegment.trim();
-      }
-
-      // 3. Hash #token=xxx or #xxx
-      if (window.location.hash.length > 5) {
-        return window.location.hash.replace('#', '').replace('token=', '').trim();
-      }
-
-      return null;
-    }
-
     async function loadSurveyForm(token) {
-      // Clean token of any accidental spaces/slashes
-      token = (token || '').replace(/[^a-zA-Z0-9]/g, '').trim();
-      if (!token) {
+      const cleanToken = extractTokenFromText(token);
+      if (!cleanToken) {
         setScreen('screen-token-input');
         return;
       }
 
-      AppState.token = token;
+      AppState.token = cleanToken;
       setScreen('screen-loading');
       document.getElementById('loading-text').textContent = 'Loading survey questions...';
+      document.getElementById('loading-subtext').textContent = 'Connecting to feedback backend...';
+
+      // Render cold-start timer: if waiting longer than 2.5s, show friendly note
+      const coldStartTimer = setTimeout(() => {
+        const notice = document.getElementById('render-spin-notice');
+        if (notice) notice.classList.remove('hidden');
+      }, 2500);
 
       try {
-        const res = await fetch(`${API_BASE}/api/public/forms/${token}`);
+        const res = await fetch(`${API_BASE}/api/public/forms/${cleanToken}`);
+        clearTimeout(coldStartTimer);
+
         const data = await res.json();
 
         if (!res.ok || !data.success) {
@@ -385,8 +518,9 @@
         AppState.formData = data.form;
         initializeEnrollmentScreen();
       } catch (err) {
+        clearTimeout(coldStartTimer);
         document.getElementById('error-title').textContent = 'Survey Unavailable';
-        document.getElementById('error-desc').textContent = err.message || 'Form not found or has been closed.';
+        document.getElementById('error-desc').textContent = err.message || 'The survey form could not be loaded or is closed.';
         setScreen('screen-error');
       }
     }
@@ -396,15 +530,20 @@
       document.getElementById('meta-dept').textContent = form.department || 'Department';
       document.getElementById('meta-sem').textContent = form.semester || 'Semester';
       document.getElementById('meta-class').textContent = `${form.className} Faculty Feedback`;
-      document.getElementById('meta-academic-year').textContent = form.academicYear ? `AY: ${form.academicYear}` : 'Current Academic Session';
+      document.getElementById('meta-academic-year').textContent = form.academicYear ? `AY: ${form.academicYear}` : 'Current Session';
       document.getElementById('meta-faculty-count').textContent = `${form.teachers.length} Faculty Members`;
 
+      // Initialize empty response state
       AppState.responses = {};
       form.teachers.forEach(t => {
         AppState.responses[t.id] = {};
       });
 
       setScreen('screen-enrollment');
+      setTimeout(() => {
+        const input = document.getElementById('input-enrollment');
+        if (input) input.focus();
+      }, 200);
     }
 
     document.getElementById('enrollment-form').addEventListener('submit', async (e) => {
@@ -431,8 +570,12 @@
 
         const data = await res.json();
 
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || data.error || 'Enrollment verification failed');
+        if (!res.ok) {
+          throw new Error(data.error || data.message || 'Enrollment verification failed');
+        }
+
+        if (!data.canSubmit) {
+          throw new Error(data.message || 'Feedback has already been submitted for this enrollment number.');
         }
 
         AppState.enrollmentNumber = enrollmentNumber;
@@ -459,7 +602,7 @@
 
       document.getElementById('active-teacher-initials').textContent = getInitials(teacher.name);
       document.getElementById('active-teacher-name').textContent = teacher.name;
-      document.getElementById('active-teacher-subject').textContent = `Subject: ${teacher.subject}`;
+      document.getElementById('active-teacher-subject').textContent = teacher.subject;
       document.getElementById('teacher-progress-indicator').textContent = `Teacher ${index + 1} of ${teachers.length}`;
 
       const progressPercent = Math.round(((index + 1) / teachers.length) * 100);
@@ -486,25 +629,32 @@
         const currentRating = AppState.responses[teacher.id]?.[topic] || 0;
 
         const topicEl = document.createElement('div');
-        topicEl.className = 'p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-3';
+        topicEl.className = 'p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3';
         topicEl.innerHTML = `
           <div class="flex items-start gap-2.5">
-            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">${tIdx + 1}</span>
-            <div class="font-semibold text-xs sm:text-sm text-slate-800 leading-snug">${escapeHtml(topic)}</div>
+            <span class="w-6 h-6 rounded-xl bg-white text-slate-700 text-xs font-bold flex items-center justify-center shrink-0 border border-slate-200/80 shadow-xs">
+              ${tIdx + 1}
+            </span>
+            <div class="font-bold text-xs sm:text-sm text-slate-800 leading-snug pt-0.5">
+              ${escapeHtml(topic)}
+            </div>
           </div>
 
-          <div class="flex items-center justify-between gap-1 sm:gap-2 pt-1">
+          <div class="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1">
             ${[1, 2, 3, 4, 5].map(rating => {
               const isSelected = currentRating === rating;
               return `
                 <button type="button" onclick="selectRating('${teacher.id}', '${escapeQuotes(topic)}', ${rating})"
-                  class="star-btn flex-1 py-2.5 sm:py-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center gap-1 ${
+                  class="rating-btn py-2.5 sm:py-3 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-1 ${
                     isSelected 
-                      ? 'bg-brand-600 text-white border-brand-600 shadow-sm' 
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-brand-500 hover:bg-brand-50/50'
+                      ? 'bg-brand-700 text-white border-brand-700 shadow-md shadow-brand-700/25 scale-[1.02]' 
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-brand-500 hover:bg-emerald-50/50'
                   }">
-                  <span class="text-sm sm:text-base">${getRatingEmoji(rating)}</span>
-                  <span>${rating}</span>
+                  <span class="text-sm sm:text-base">${RATING_EMOJIS[rating]}</span>
+                  <span class="font-black text-xs sm:text-sm">${rating}</span>
+                  <span class="hidden sm:inline text-[9px] uppercase tracking-tighter ${isSelected ? 'text-white/80' : 'text-slate-400'}">
+                    ${RATING_LABELS[rating]}
+                  </span>
                 </button>
               `;
             }).join('')}
@@ -528,21 +678,6 @@
         .join('') || 'PR';
     }
 
-    function getRatingEmoji(val) {
-      switch (val) {
-        case 1: return '😞';
-        case 2: return '😐';
-        case 3: return '🙂';
-        case 4: return '😊';
-        case 5: return '🌟';
-        default: return '⭐';
-      }
-    }
-
-    function escapeQuotes(str) {
-      return (str || '').replace(/'/g, "\\'");
-    }
-
     window.selectRating = function(teacherId, topic, rating) {
       if (!AppState.responses[teacherId]) {
         AppState.responses[teacherId] = {};
@@ -559,7 +694,7 @@
 
       for (const topic of topics) {
         if (!answeredTopics[topic]) {
-          showToast(`Please rate: "${topic}"`, 'warning');
+          showToast(`Please answer: "${topic}"`, 'warning');
           return;
         }
       }
@@ -616,8 +751,17 @@
         }
 
         document.getElementById('success-enrollment').textContent = AppState.enrollmentNumber;
-        document.getElementById('success-timestamp').textContent = new Date().toLocaleString();
+        document.getElementById('success-timestamp').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date().toLocaleDateString();
         setScreen('screen-success');
+
+        // Fire celebration confetti!
+        if (window.confetti) {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.6 }
+          });
+        }
       } catch (err) {
         showToast(err.message, 'error');
         btn.disabled = false;
@@ -630,9 +774,13 @@
 
     document.getElementById('token-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const input = document.getElementById('manual-token-input').value.trim();
-      if (!input) return;
-      loadSurveyForm(input);
+      const rawInput = document.getElementById('manual-token-input').value.trim();
+      const extracted = extractTokenFromText(rawInput);
+      if (!extracted) {
+        showToast('Invalid token or link format. Please check the URL.', 'warning');
+        return;
+      }
+      loadSurveyForm(extracted);
     });
 
     async function checkServerHealth() {
@@ -649,9 +797,9 @@
     window.addEventListener('DOMContentLoaded', () => {
       checkServerHealth();
 
-      const detectedToken = detectPublicToken();
-      if (detectedToken) {
-        loadSurveyForm(detectedToken);
+      const detected = detectTokenFromLocation();
+      if (detected) {
+        loadSurveyForm(detected);
       } else {
         setScreen('screen-token-input');
       }
@@ -659,3 +807,4 @@
   </script>
 </body>
 </html>
+
