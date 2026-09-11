@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +8,7 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Canvas Confetti for Completion Celebration -->
+  <!-- Canvas Confetti for Celebration -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,7 +61,6 @@
     .rating-btn:active {
       transform: scale(0.94);
     }
-    /* Smooth custom scrollbars */
     ::-webkit-scrollbar {
       width: 5px;
       height: 5px;
@@ -103,7 +103,31 @@
 
   <main class="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
 
-    <!-- STATE 0: TOKEN INPUT SCREEN (Manual or pasted full link) -->
+    <!-- SCREEN 1: LOADING SCREEN (DEFAULT VISIBLE WHILE AUTO-RESOLVING TOKEN) -->
+    <div id="screen-loading" class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-card text-center slide-enter">
+      <div class="flex flex-col items-center justify-center space-y-4">
+        <div class="relative flex items-center justify-center">
+          <div class="w-14 h-14 rounded-full border-4 border-emerald-100 border-t-brand-600 animate-spin"></div>
+          <div class="absolute w-6 h-6 rounded-full bg-brand-500/20 animate-ping"></div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-sm sm:text-base font-bold text-slate-900" id="loading-text">Detecting survey link...</div>
+          <p class="text-xs text-slate-500 font-mono break-all max-w-md mx-auto" id="loading-subtext">Checking parameters...</p>
+        </div>
+
+        <!-- Render Free Tier Warmup Notification Banner -->
+        <div id="render-spin-notice" class="hidden max-w-sm mx-auto p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 text-left flex items-start gap-2.5">
+          <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="leading-relaxed">
+            <span class="font-bold">Backend is waking up:</span> Free cloud servers enter standby when idle. Please give it 15–30 seconds to spin up!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 0: MANUAL TOKEN INPUT (Only shown if opened with NO token in URL) -->
     <div id="screen-token-input" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card slide-enter">
       <div class="text-center max-w-md mx-auto space-y-4">
         <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto border border-brand-100 shadow-inner">
@@ -114,7 +138,7 @@
         <div>
           <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Open Feedback Survey</h2>
           <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            Scan the classroom QR code or paste the survey link / token below to begin.
+            Scan your classroom QR code or paste the feedback link below.
           </p>
         </div>
 
@@ -123,10 +147,10 @@
             <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
               Survey URL or Token
             </label>
-            <input id="manual-token-input" type="text" required placeholder="Paste full link or token e.g. 288cfd89f05..."
+            <input id="manual-token-input" type="text" required placeholder="Paste link or token e.g. 288cfd89f05618..."
               class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
             <p class="text-[11px] text-slate-400 mt-1.5">
-              Supports full links (e.g. <code>https://.../feedback/288cf...</code>) as well as raw tokens.
+              Supports raw token or complete URL e.g. <code>https://.../feedback/288cf...</code>
             </p>
           </div>
 
@@ -138,28 +162,7 @@
       </div>
     </div>
 
-    <div id="screen-loading" class="bg-white rounded-3xl p-10 border border-slate-200/90 shadow-card text-center slide-enter">
-      <div class="flex flex-col items-center justify-center space-y-4">
-        <div class="relative flex items-center justify-center">
-          <div class="w-14 h-14 rounded-full border-4 border-emerald-100 border-t-brand-600 animate-spin"></div>
-          <div class="absolute w-6 h-6 rounded-full bg-brand-500/20 animate-ping"></div>
-        </div>
-        <div class="space-y-1">
-          <div class="text-sm sm:text-base font-bold text-slate-900" id="loading-text">Loading survey questions...</div>
-          <p class="text-xs text-slate-400" id="loading-subtext">Connecting to feedback backend...</p>
-        </div>
-        <!-- Render Free Tier Warmup Notification Banner -->
-        <div id="render-spin-notice" class="hidden max-w-sm mx-auto p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-800 text-left flex items-start gap-2">
-          <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <span class="font-bold">Waking up Render backend:</span> Because the server is hosted on a free cloud tier, the initial request can take 20–40 seconds to spin up. Please hold on!
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <!-- SCREEN 2: ERROR SCREEN -->
     <div id="screen-error" class="hidden bg-white rounded-3xl p-8 border border-rose-100 shadow-card text-center slide-enter">
       <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3.5 border border-rose-100">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,16 +173,21 @@
       <p id="error-desc" class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-6 leading-relaxed">
         The feedback form could not be retrieved. It may be closed or the token may be incorrect.
       </p>
+      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-mono text-slate-600 mb-5 break-all max-w-sm mx-auto">
+        <span class="font-bold text-slate-400 block text-[10px] uppercase">Attempted Token:</span>
+        <span id="error-token-display">None</span>
+      </div>
       <div class="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
         <button onclick="setScreen('screen-token-input')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">
           Paste Another Token
         </button>
-        <button onclick="window.location.reload()" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
-          Retry
+        <button id="error-retry-btn" onclick="retryCurrentToken()" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+          Retry Connection
         </button>
       </div>
     </div>
 
+    <!-- SCREEN 3: ENROLLMENT NUMBER SCREEN -->
     <div id="screen-enrollment" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card slide-enter">
       <div class="pb-5 border-b border-slate-100 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -218,7 +226,7 @@
             <svg class="w-4 h-4 text-brand-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>Your enrollment ensures one submission per student. Individual teacher ratings remain completely confidential.</span>
+            <span>Your enrollment ensures one submission per student. Individual teacher ratings remain strictly confidential.</span>
           </div>
         </div>
 
@@ -232,9 +240,10 @@
       </form>
     </div>
 
+    <!-- SCREEN 4: FEEDBACK QUESTIONS SCREEN -->
     <div id="screen-feedback" class="hidden flex flex-col space-y-4 slide-enter">
       
-      <!-- Sticky/Persistent Teacher Progress Header -->
+      <!-- Progress Bar -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs">
         <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
           <span class="flex items-center gap-2">
@@ -250,10 +259,10 @@
         </div>
       </div>
 
-      <!-- Active Teacher Evaluation Card -->
+      <!-- Active Teacher Card -->
       <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-card space-y-6">
         
-        <!-- Faculty Meta Info -->
+        <!-- Faculty Meta Header -->
         <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
           <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-brand-700 to-emerald-500 text-white font-black flex items-center justify-center text-lg sm:text-xl shadow-md shadow-brand-700/20 shrink-0">
             <span id="active-teacher-initials">--</span>
@@ -287,6 +296,7 @@
       </div>
     </div>
 
+    <!-- SCREEN 5: SUCCESS RECEIPT SCREEN -->
     <div id="screen-success" class="hidden bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-card text-center slide-enter">
       <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4 border border-brand-200 shadow-sm">
         <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,7 +325,7 @@
 
       <div class="mt-8 flex justify-center">
         <button onclick="window.close()" class="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm">
-          Close Window
+          Done
         </button>
       </div>
     </div>
@@ -344,7 +354,6 @@
       responses: {}
     };
 
-    // Label mapping for 1-5 ratings
     const RATING_LABELS = {
       1: 'Unsatisfactory',
       2: 'Satisfactory',
@@ -362,69 +371,116 @@
     };
 
     /**
-     * Robust Token Extractor:
-     * Parses tokens directly from any format:
-     * - https://feedback-theta-pearl-86.vercel.app/feedback/288cfd89f05618366a88d9d4e3d24856fdd68831640aeec2
-     * - /feedback/288cfd...
-     * - ?token=288cfd...
-     * - #/feedback/288cfd... or #288cfd...
-     * - Raw hex strings (24 to 64 chars)
+     * Comprehensive multi-strategy token detector.
+     * Supports:
+     * 1. Direct path: /feedback/288cfd89... or /feedback/288cfd89.../
+     * 2. Query param: ?token=288cf...
+     * 3. Hash routing: #/feedback/288cf... or #288cf...
+     * 4. Full pasted URL into manual input box
+     * 5. Fallback path segment scanning
      */
     function extractTokenFromText(rawText) {
-      if (!rawText) return null;
-      rawText = rawText.trim();
+      if (!rawText || typeof rawText !== 'string') return null;
+      let clean = rawText.trim();
 
-      // 1. Matches /feedback/<token>
-      const matchFeedback = rawText.match(/\/feedback\/([a-f0-9]{24,64})/i);
+      // Clean URI encoding if present
+      try { clean = decodeURIComponent(clean); } catch (e) {}
+
+      // Strategy A: /feedback/:token
+      const matchFeedback = clean.match(/\/feedback\/([a-zA-Z0-9_-]{16,64})/i);
       if (matchFeedback && matchFeedback[1]) {
         return matchFeedback[1].toLowerCase();
       }
 
-      // 2. Query param ?token=<token>
-      const matchParam = rawText.match(/[?&]token=([a-f0-9]{24,64})/i);
+      // Strategy B: /student/:token
+      const matchStudent = clean.match(/\/student\/([a-zA-Z0-9_-]{16,64})/i);
+      if (matchStudent && matchStudent[1]) {
+        return matchStudent[1].toLowerCase();
+      }
+
+      // Strategy C: ?token=... or &token=...
+      const matchParam = clean.match(/[?&]token=([a-zA-Z0-9_-]{16,64})/i);
       if (matchParam && matchParam[1]) {
         return matchParam[1].toLowerCase();
       }
 
-      // 3. Hash route #token=<token> or #<token>
-      const matchHash = rawText.match(/#(?:\/feedback\/)?(?:token=)?([a-f0-9]{24,64})/i);
+      // Strategy D: Hash route #... or #/feedback/...
+      const matchHash = clean.match(/#(?:\/feedback\/|\/student\/|token=)?([a-zA-Z0-9_-]{16,64})/i);
       if (matchHash && matchHash[1]) {
         return matchHash[1].toLowerCase();
       }
 
-      // 4. Raw hex string match
-      const rawHexMatch = rawText.match(/^[a-f0-9]{24,64}$/i);
-      if (rawHexMatch) {
-        return rawHexMatch[0].toLowerCase();
+      // Strategy E: Standalone token (hex or alphanumeric string between 24 and 64 chars)
+      const rawHexMatch = clean.match(/\b([a-fA-F0-9]{24,64})\b/);
+      if (rawHexMatch && rawHexMatch[1]) {
+        return rawHexMatch[1].toLowerCase();
       }
 
       return null;
     }
 
     function detectTokenFromLocation() {
-      // 1. First check window.location.href completely
-      const fromHref = extractTokenFromText(window.location.href);
-      if (fromHref) return fromHref;
+      // 1. Check window.location.pathname
+      const pathToken = extractTokenFromText(window.location.pathname);
+      if (pathToken) return pathToken;
 
-      // 2. Check window.location.pathname
-      const fromPath = extractTokenFromText(window.location.pathname);
-      if (fromPath) return fromPath;
+      // 2. Check complete window.location.href
+      const hrefToken = extractTokenFromText(window.location.href);
+      if (hrefToken) return hrefToken;
 
-      // 3. Check search params
-      const searchParams = new URLSearchParams(window.location.search);
-      const tokenQuery = searchParams.get('token');
-      if (tokenQuery) {
-        const fromQuery = extractTokenFromText(tokenQuery);
-        if (fromQuery) return fromQuery;
-      }
+      // 3. Check search parameters
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const queryToken = searchParams.get('token') || searchParams.get('t') || searchParams.get('id');
+        if (queryToken) {
+          const fromQuery = extractTokenFromText(queryToken);
+          if (fromQuery) return fromQuery;
+        }
+      } catch (e) {}
 
-      // 4. Check hash
+      // 4. Check hash fragment
       if (window.location.hash) {
         const fromHash = extractTokenFromText(window.location.hash);
         if (fromHash) return fromHash;
       }
 
+      // 5. Inspect individual pathname segments
+      const segments = window.location.pathname.split('/').filter(Boolean);
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        if (seg === 'feedback' || seg === 'student') {
+          if (segments[i + 1]) {
+            const nextSeg = extractTokenFromText(segments[i + 1]);
+            if (nextSeg) return nextSeg;
+          }
+        }
+        const candidate = extractTokenFromText(seg);
+        if (candidate) return candidate;
+      }
+
       return null;
+    }
+
+    function setScreen(screenId) {
+      const screens = [
+        'screen-token-input',
+        'screen-loading',
+        'screen-error',
+        'screen-enrollment',
+        'screen-feedback',
+        'screen-success'
+      ];
+
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (id === screenId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
     }
 
     function showToast(message, type = 'info') {
@@ -465,28 +521,6 @@
       return (str || '').replace(/'/g, "\\'");
     }
 
-    function setScreen(screenId) {
-      const screens = [
-        'screen-token-input',
-        'screen-loading',
-        'screen-error',
-        'screen-enrollment',
-        'screen-feedback',
-        'screen-success'
-      ];
-
-      screens.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          if (id === screenId) {
-            el.classList.remove('hidden');
-          } else {
-            el.classList.add('hidden');
-          }
-        }
-      });
-    }
-
     async function loadSurveyForm(token) {
       const cleanToken = extractTokenFromText(token);
       if (!cleanToken) {
@@ -496,19 +530,26 @@
 
       AppState.token = cleanToken;
       setScreen('screen-loading');
-      document.getElementById('loading-text').textContent = 'Loading survey questions...';
-      document.getElementById('loading-subtext').textContent = 'Connecting to feedback backend...';
 
-      // Render cold-start timer: if waiting longer than 2.5s, show friendly note
+      const loadingSubtext = document.getElementById('loading-subtext');
+      if (loadingSubtext) {
+        loadingSubtext.textContent = `Token: ${cleanToken.substring(0, 8)}... Connecting to backend...`;
+      }
+
+      // Free tier Render notice if wake up takes longer than 2.5s
       const coldStartTimer = setTimeout(() => {
         const notice = document.getElementById('render-spin-notice');
         if (notice) notice.classList.remove('hidden');
       }, 2500);
 
       try {
-        const res = await fetch(`${API_BASE}/api/public/forms/${cleanToken}`);
-        clearTimeout(coldStartTimer);
+        console.log(`[STUDENT APP] Requesting: ${API_BASE}/api/public/forms/${cleanToken}`);
+        const res = await fetch(`${API_BASE}/api/public/forms/${cleanToken}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
 
+        clearTimeout(coldStartTimer);
         const data = await res.json();
 
         if (!res.ok || !data.success) {
@@ -516,14 +557,27 @@
         }
 
         AppState.formData = data.form;
+        console.log('[STUDENT APP] Survey loaded successfully, proceeding to enrollment screen.');
         initializeEnrollmentScreen();
       } catch (err) {
         clearTimeout(coldStartTimer);
+        console.error('[STUDENT APP ERROR]:', err);
         document.getElementById('error-title').textContent = 'Survey Unavailable';
-        document.getElementById('error-desc').textContent = err.message || 'The survey form could not be loaded or is closed.';
+        document.getElementById('error-desc').textContent = err.message || 'The feedback form could not be loaded or is closed.';
+        document.getElementById('error-token-display').textContent = cleanToken;
         setScreen('screen-error');
       }
     }
+
+    window.retryCurrentToken = function() {
+      if (AppState.token) {
+        loadSurveyForm(AppState.token);
+      } else {
+        const detected = detectTokenFromLocation();
+        if (detected) loadSurveyForm(detected);
+        else setScreen('screen-token-input');
+      }
+    };
 
     function initializeEnrollmentScreen() {
       const form = AppState.formData;
@@ -533,7 +587,7 @@
       document.getElementById('meta-academic-year').textContent = form.academicYear ? `AY: ${form.academicYear}` : 'Current Session';
       document.getElementById('meta-faculty-count').textContent = `${form.teachers.length} Faculty Members`;
 
-      // Initialize empty response state
+      // Initialize empty response map
       AppState.responses = {};
       form.teachers.forEach(t => {
         AppState.responses[t.id] = {};
@@ -694,7 +748,7 @@
 
       for (const topic of topics) {
         if (!answeredTopics[topic]) {
-          showToast(`Please answer: "${topic}"`, 'warning');
+          showToast(`Please rate: "${topic}"`, 'warning');
           return;
         }
       }
@@ -754,7 +808,6 @@
         document.getElementById('success-timestamp').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date().toLocaleDateString();
         setScreen('screen-success');
 
-        // Fire celebration confetti!
         if (window.confetti) {
           confetti({
             particleCount: 80,
@@ -777,7 +830,7 @@
       const rawInput = document.getElementById('manual-token-input').value.trim();
       const extracted = extractTokenFromText(rawInput);
       if (!extracted) {
-        showToast('Invalid token or link format. Please check the URL.', 'warning');
+        showToast('Invalid token or link format. Please check your link.', 'warning');
         return;
       }
       loadSurveyForm(extracted);
@@ -787,24 +840,38 @@
       try {
         const res = await fetch(`${API_BASE}/api/health`);
         if (res.ok) {
-          document.getElementById('server-status-label').textContent = 'Online';
+          const el = document.getElementById('server-status-label');
+          if (el) el.textContent = 'Online';
         }
-      } catch (e) {
-        document.getElementById('server-status-label').textContent = 'Connecting...';
-      }
+      } catch (e) {}
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    /**
+     * Immediate Startup Controller:
+     * Does not wait for DOMContentLoaded if page is already ready.
+     */
+    function initApp() {
       checkServerHealth();
 
       const detected = detectTokenFromLocation();
+      console.log('[STUDENT APP] Detected Token:', detected);
+
       if (detected) {
+        const manualInput = document.getElementById('manual-token-input');
+        if (manualInput) manualInput.value = detected;
         loadSurveyForm(detected);
       } else {
         setScreen('screen-token-input');
       }
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
   </script>
 </body>
 </html>
 
+```
