@@ -3,39 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#064e3b" />
   <title>Student Feedback Portal • Maulana Azad Polytechnic, Solapur</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Confetti library for completion celebration -->
+  <!-- Canvas Confetti for completion celebration -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
           },
           colors: {
             brand: {
               50: '#ecfdf5',
               100: '#d1fae5',
               200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
               500: '#10b981',
               600: '#059669',
               700: '#047857',
               800: '#065f46',
               900: '#064e3b',
+              950: '#022c22',
             }
           },
           boxShadow: {
-            'card': '0 10px 30px -4px rgba(6, 78, 59, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
-            'btn': '0 4px 14px 0 rgba(4, 120, 87, 0.35)'
+            'glow': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
+            'card-elevated': '0 20px 40px -15px rgba(6, 78, 59, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05)',
+            'btn-brand': '0 8px 20px -4px rgba(4, 120, 87, 0.38)'
           }
         }
       }
@@ -43,66 +49,97 @@
   </script>
 
   <style>
-    @keyframes fadeInSlide {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Smooth CSS animations & fluid interactions */
+    @keyframes springIn {
+      0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+      70% { transform: translateY(-2px) scale(1.005); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .anim-fade {
-      animation: fadeInSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .anim-spring {
+      animation: springIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .rating-btn {
-      transition: all 0.14s ease-out;
+
+    /* Tactile Rating Button transitions */
+    .rating-touch-btn {
+      transition: all 0.16s cubic-bezier(0.2, 0, 0, 1);
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
-    .rating-btn:active {
-      transform: scale(0.95);
+    .rating-touch-btn:active {
+      transform: scale(0.92);
     }
+
+    /* Prevent browser automatic jump on tap */
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* Subtle custom scrollbar */
     ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 9999px;
     }
-    input {
-      -webkit-tap-highlight-color: transparent;
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
     }
   </style>
 </head>
-<body class="bg-gradient-to-b from-slate-50 via-emerald-50/30 to-slate-100 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-600 selection:text-white pb-6">
+<body class="bg-gradient-to-br from-slate-50 via-emerald-50/20 to-slate-100 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-600 selection:text-white pb-8">
 
-  <!-- Floating Toast Notifications Overlay -->
-  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <!-- Floating Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2.5 pointer-events-none" aria-live="polite"></div>
 
-  <!-- College Navigation Bar -->
-  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs transition-all">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-18 py-2.5 flex items-center justify-between gap-3">
       
+      <!-- College Logo & Institutional Identity -->
       <div class="flex items-center gap-3 min-w-0">
-        <div class="relative w-10 h-10 shrink-0 flex items-center justify-center">
-          <img src="logo.png" alt="College Logo" class="w-10 h-10 object-contain rounded-xl"
-               onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
-          <div class="hidden w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-800 to-brand-600 text-white flex items-center justify-center font-black shadow-md shadow-brand-700/20 text-xs">
+        <div class="relative w-11 h-11 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center p-0.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm overflow-hidden group">
+          <!-- Logo image: Uses logo.jpeg with graceful fallback -->
+          <img src="logo.jpeg" 
+               alt="Maulana Azad Polytechnic Logo" 
+               class="w-full h-full object-contain rounded-xl transition duration-200 group-hover:scale-105"
+               onerror="this.onerror=null; this.src='logo.png'; this.onerror=() => { this.style.display='none'; document.getElementById('logo-fallback-badge').classList.remove('hidden'); };" />
+          <div id="logo-fallback-badge" class="hidden absolute inset-0 bg-gradient-to-tr from-brand-900 to-brand-700 text-white flex flex-col items-center justify-center font-black text-xs tracking-wider rounded-xl">
             MAP
           </div>
         </div>
+
         <div class="min-w-0">
-          <h1 class="font-extrabold text-slate-900 text-xs sm:text-sm tracking-tight truncate leading-tight">
-            Maulana Azad Polytechnic
-          </h1>
-          <p class="text-[11px] text-slate-500 font-medium truncate flex items-center gap-1.5">
-            <span>Student Feedback Portal</span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h1 class="font-extrabold text-slate-900 text-xs sm:text-sm md:text-base tracking-tight truncate leading-tight uppercase">
+              Maulana Azad Polytechnic, Solapur
+            </h1>
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-brand-50 border border-brand-200 text-brand-800 text-[10px] font-bold">
+              <svg class="w-3 h-3 text-brand-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+              <span>Verified</span>
+            </span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-slate-500 font-medium truncate flex items-center gap-1.5 mt-0.5">
+            <span class="text-brand-800 font-semibold">Official Student Feedback Portal</span>
             <span class="text-slate-300">•</span>
-            <span class="text-brand-700 font-bold">Solapur</span>
+            <span>MSBTE Code / DTE Approved</span>
           </p>
         </div>
       </div>
 
-      <!-- Live Server Health Badge -->
-      <div id="server-status-badge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="server-status-label">Online</span>
+      <!-- Live Server Health Monitor -->
+      <div id="server-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 shadow-xs">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span id="server-status-label" class="hidden xs:inline font-mono">Connected</span>
       </div>
 
     </div>
@@ -110,46 +147,47 @@
 
   <main class="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
 
-    <!-- VIEW 1: AUTOMATIC RESOLVING / LOADING SCREEN -->
-    <div id="screen-loading" class="bg-white rounded-3xl p-7 sm:p-10 border border-slate-200/90 shadow-card text-center anim-fade">
-      <div class="flex flex-col items-center justify-center space-y-4">
+    <!-- VIEW 1: LOADING & CONNECTING SCREEN -->
+    <div id="screen-loading" class="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/90 shadow-card-elevated text-center anim-spring">
+      <div class="flex flex-col items-center justify-center space-y-5">
         
         <div class="relative flex items-center justify-center">
-          <div class="w-14 h-14 rounded-full border-4 border-emerald-100 border-t-brand-600 animate-spin"></div>
-          <div class="absolute w-6 h-6 rounded-full bg-brand-500/20 animate-ping"></div>
+          <div class="w-16 h-16 rounded-full border-4 border-emerald-100 border-t-brand-600 animate-spin"></div>
+          <div class="absolute w-8 h-8 rounded-full bg-brand-500/15 animate-ping"></div>
+          <div class="absolute text-brand-700 font-black text-xs">MAP</div>
         </div>
 
-        <div class="space-y-1">
-          <h2 id="loading-heading" class="text-base sm:text-lg font-extrabold text-slate-900">
-            Connecting to Feedback Survey...
+        <div class="space-y-1.5">
+          <h2 id="loading-heading" class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            Loading Feedback Session...
           </h2>
           <p id="loading-subtext" class="text-xs text-slate-500 font-mono break-all max-w-sm mx-auto">
-            Extracting survey session token...
+            Contacting academic server...
           </p>
         </div>
 
-        <!-- Render Free Tier Cloud Wake-up Alert -->
-        <div id="render-spin-alert" class="hidden max-w-md mx-auto p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-900 space-y-1 anim-fade">
+        <!-- Render Standby Cold Start Notice -->
+        <div id="render-spin-alert" class="hidden max-w-md mx-auto p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-left text-xs text-amber-900 space-y-1.5 anim-spring">
           <div class="flex items-center gap-2 font-bold text-amber-800">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Cloud Backend is Waking Up</span>
+            <span>Cloud Server Waking Up</span>
           </div>
           <p class="text-[11px] text-amber-700 leading-relaxed">
-            Free cloud instances enter power standby when idle. Please give it 10–25 seconds to spin up. Your survey will load automatically!
+            The free cloud backend sleeps when idle. Please hold on 10–20 seconds—your evaluation form will appear right away without refreshing!
           </p>
         </div>
 
       </div>
     </div>
 
-    <!-- VIEW 2: MANUAL TOKEN / URL PASTE (Only shown if opened with no link parameters) -->
-    <div id="screen-manual-token" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card anim-fade">
+    <!-- VIEW 2: MANUAL TOKEN / QR LINK PASTE -->
+    <div id="screen-manual-token" class="hidden bg-white rounded-3xl p-6 sm:p-9 border border-slate-200/90 shadow-card-elevated anim-spring">
       <div class="text-center max-w-md mx-auto space-y-4">
         
-        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto border border-brand-100">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-50 to-emerald-100 text-brand-700 flex items-center justify-center mx-auto border border-brand-200/60 shadow-xs">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
           </svg>
         </div>
@@ -157,26 +195,29 @@
         <div>
           <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Open Feedback Survey</h2>
           <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            Scan your classroom QR code or paste your department's feedback survey link below.
+            Scan your classroom feedback QR code or paste your department's shared link below.
           </p>
         </div>
 
         <form id="manual-token-form" class="space-y-3 pt-2">
           <div class="text-left">
-            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-              Survey URL or Public Token *
+            <label for="manual-input" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Survey URL or Public Session Token *
             </label>
             <input id="manual-input" type="text" required
-              placeholder="e.g. https://.../feedback/288cf... or 288cf..."
-              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
-            <p class="text-[11px] text-slate-400 mt-1.5">
-              Paste the full WhatsApp link or just the token code.
+              placeholder="e.g. 288cfd89f0... or https://.../feedback/..."
+              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-mono focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
+            <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-brand-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              <span>You can paste the entire WhatsApp link directly.</span>
             </p>
           </div>
 
           <button type="submit" id="btn-load-manual"
-            class="w-full py-3.5 px-5 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white text-xs sm:text-sm font-bold transition shadow-btn flex items-center justify-center gap-2">
-            <span>Proceed to Survey</span>
+            class="w-full py-4 px-5 rounded-2xl bg-brand-700 hover:bg-brand-800 active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold transition shadow-btn-brand flex items-center justify-center gap-2">
+            <span>Proceed to Evaluation</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
         </form>
@@ -184,65 +225,71 @@
       </div>
     </div>
 
-    <!-- VIEW 3: ERROR & CLOSED SURVEY STATE -->
-    <div id="screen-error" class="hidden bg-white rounded-3xl p-7 sm:p-9 border border-rose-100 shadow-card text-center anim-fade">
-      <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3.5 border border-rose-100">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- VIEW 3: ERROR & CLOSED FORM STATE -->
+    <div id="screen-error" class="hidden bg-white rounded-3xl p-7 sm:p-10 border border-rose-100 shadow-card-elevated text-center anim-spring">
+      <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-inner">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
 
-      <h3 id="error-title" class="text-lg sm:text-xl font-bold text-slate-900">Survey Unavailable</h3>
+      <h3 id="error-title" class="text-xl font-black text-slate-900 tracking-tight">Survey Unavailable</h3>
       <p id="error-desc" class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-5 leading-relaxed">
-        The feedback form could not be retrieved. It may be closed by the HOD or the token link may be invalid.
+        The feedback form could not be retrieved. It may have been concluded by the HOD or the token link is invalid.
       </p>
 
-      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-mono text-slate-600 mb-5 break-all max-w-sm mx-auto text-left">
-        <span class="font-bold text-slate-400 block text-[10px] uppercase font-sans">Attempted Token:</span>
-        <span id="error-token-code" class="text-slate-900 font-bold">None</span>
+      <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-mono text-slate-600 mb-6 break-all max-w-sm mx-auto text-left">
+        <span class="font-bold text-slate-400 block text-[10px] uppercase tracking-wider font-sans mb-0.5">Attempted Session Key</span>
+        <span id="error-token-code" class="text-slate-900 font-bold select-all">None</span>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
-        <button onclick="setScreen('screen-manual-token')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">
+      <div class="flex flex-col sm:flex-row gap-2.5 justify-center max-w-xs mx-auto">
+        <button onclick="setScreen('screen-manual-token')" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition">
           Paste Another Link
         </button>
-        <button id="btn-retry-token" onclick="retrySurveyFetch()" class="w-full px-4 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold transition shadow-sm">
+        <button id="btn-retry-token" onclick="retrySurveyFetch()" class="w-full px-4 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition shadow-sm">
           Retry Connection
         </button>
       </div>
     </div>
 
-    <!-- VIEW 4: STUDENT ENROLLMENT SCREEN -->
-    <div id="screen-enrollment" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card anim-fade">
+    <!-- VIEW 4: STUDENT ENROLLMENT VERIFICATION -->
+    <div id="screen-enrollment" class="hidden bg-white rounded-3xl p-6 sm:p-9 border border-slate-200/90 shadow-card-elevated anim-spring">
       
-      <!-- Class Meta Header -->
+      <!-- Department Metadata Header -->
       <div class="pb-5 border-b border-slate-100 mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <span id="meta-dept" class="text-[11px] font-bold text-brand-800 uppercase tracking-wider bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <span id="meta-dept" class="text-[11px] font-extrabold text-brand-800 uppercase tracking-wider bg-brand-50 px-3.5 py-1 rounded-full border border-brand-200/70">
             Department
           </span>
-          <span id="meta-sem" class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-            Sem --
+          <span id="meta-sem" class="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+            Semester --
           </span>
         </div>
-        <h2 id="meta-class" class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Class Faculty Feedback</h2>
-        <div class="flex items-center gap-3 text-xs text-slate-500 mt-1 font-medium">
-          <span id="meta-academic-year">AY: --</span>
+        
+        <h2 id="meta-class" class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Class Faculty Evaluation</h2>
+        
+        <div class="flex items-center gap-3 text-xs text-slate-500 mt-1.5 font-semibold">
+          <span id="meta-academic-year" class="flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            AY: --
+          </span>
           <span class="text-slate-300">•</span>
-          <span id="meta-faculty-count" class="font-bold text-brand-800">0 Faculty Members</span>
+          <span id="meta-faculty-count" class="font-bold text-brand-700">0 Faculty Members</span>
         </div>
       </div>
 
       <!-- Enrollment Verification Form -->
       <form id="enrollment-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            Student Enrollment / Roll Number *
+          <label for="input-enrollment" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            Student Enrollment Number / Roll Number *
           </label>
           <div class="relative">
             <input id="input-enrollment" type="text" required placeholder="e.g. 2104590123" autocomplete="off"
-              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-sm sm:text-base font-mono uppercase tracking-wider focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
-            <div id="enrollment-spinner" class="hidden absolute right-3.5 top-3.5">
+              maxlength="32"
+              class="w-full px-4 py-4 rounded-2xl border border-slate-200 text-base font-mono uppercase tracking-wider focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:outline-none bg-slate-50 focus:bg-white transition" />
+            <div id="enrollment-spinner" class="hidden absolute right-4 top-4">
               <svg class="animate-spin h-5 w-5 text-brand-600" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
@@ -250,16 +297,16 @@
             </div>
           </div>
           
-          <div class="flex items-start gap-2 mt-2.5 text-[11px] text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-            <svg class="w-4 h-4 text-brand-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-start gap-2.5 mt-3 text-xs text-slate-600 leading-relaxed bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/80">
+            <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>Your enrollment number guarantees exactly one submission per student. Individual teacher ratings remain strictly anonymous in HOD analytics.</span>
+            <span>Your enrollment ID ensures fair single-vote accountability. Individual teacher evaluation responses are strictly encrypted & anonymous to faculty members.</span>
           </div>
         </div>
 
         <button type="submit" id="btn-verify-enrollment"
-          class="w-full py-4 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm shadow-btn transition flex items-center justify-center gap-2">
+          class="w-full py-4 rounded-2xl bg-brand-700 hover:bg-brand-800 active:scale-[0.99] text-white font-extrabold text-sm shadow-btn-brand transition flex items-center justify-center gap-2">
           <span>Begin Faculty Evaluation</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -269,57 +316,63 @@
 
     </div>
 
-    <!-- VIEW 5: EVALUATION QUESTIONS CAROUSEL -->
-    <div id="screen-feedback" class="hidden flex flex-col space-y-4 anim-fade">
+    <!-- VIEW 5: EVALUATION FORM CAROUSEL -->
+    <div id="screen-feedback" class="hidden flex flex-col space-y-4 anim-spring">
       
       <!-- Progress Bar Card -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs">
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-card-elevated">
         <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
           <span class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
-            <span>Evaluating Faculty Member</span>
+            <span class="font-extrabold text-slate-900">Faculty Progress</span>
           </span>
-          <span id="teacher-progress-badge" class="text-brand-800 font-mono text-xs font-black bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">
+          <span id="teacher-progress-badge" class="text-brand-800 font-mono text-xs font-black bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
             Teacher 1 of 3
           </span>
         </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-          <div id="progress-bar-fill" class="h-2 bg-brand-600 rounded-full transition-all duration-300" style="width: 33%"></div>
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5">
+          <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-brand-600 to-emerald-400 rounded-full transition-all duration-300 shadow-sm" style="width: 33%"></div>
         </div>
       </div>
 
       <!-- Active Faculty Card -->
-      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-card space-y-5">
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-card-elevated space-y-5">
         
         <!-- Faculty Information Header -->
         <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-brand-700 to-emerald-500 text-white font-black flex items-center justify-center text-lg sm:text-xl shadow-md shadow-brand-700/20 shrink-0">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-brand-800 via-brand-700 to-emerald-600 text-white font-black flex items-center justify-center text-base sm:text-xl shadow-md shadow-brand-800/20 shrink-0">
             <span id="active-teacher-initials">PR</span>
           </div>
-          <div class="min-w-0">
-            <h3 id="active-teacher-name" class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight truncate">Prof. Name</h3>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[11px] font-semibold text-slate-400">Subject:</span>
-              <span id="active-teacher-subject" class="text-xs sm:text-sm text-brand-800 font-bold truncate">Subject Name</span>
+          <div class="min-w-0 flex-1">
+            <h3 id="active-teacher-name" class="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">Prof. Name</h3>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] uppercase font-bold text-slate-400">Subject:</span>
+              <span id="active-teacher-subject" class="text-xs sm:text-sm text-brand-800 font-bold truncate bg-brand-50 px-2 py-0.5 rounded border border-brand-200/60">Subject Name</span>
             </div>
+          </div>
+          
+          <!-- Answer Counter Badge -->
+          <div id="teacher-questions-counter" class="hidden sm:flex flex-col items-end text-right">
+            <span class="text-[10px] font-bold uppercase text-slate-400">Answered</span>
+            <span id="answered-counter-label" class="font-mono text-xs font-bold text-brand-700">0 / 0</span>
           </div>
         </div>
 
         <!-- Dynamic Questions List for Active Teacher -->
         <div id="active-topics-list" class="space-y-4"></div>
 
-        <!-- Navigation Buttons -->
+        <!-- Navigation Action Buttons -->
         <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
           <button type="button" id="btn-prev-teacher"
-            class="hidden px-4 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5">
+            class="hidden px-4 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-50 transition flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             <span>Previous</span>
           </button>
 
           <button type="button" id="btn-next-teacher"
-            class="ml-auto px-6 py-3.5 rounded-2xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm shadow-btn transition flex items-center gap-2">
-            <span id="btn-next-text">Next Teacher</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            class="ml-auto px-6 py-3.5 rounded-2xl bg-brand-700 hover:bg-brand-800 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm shadow-btn-brand transition flex items-center gap-2">
+            <span id="btn-next-text">Next Faculty Member</span>
+            <svg id="btn-next-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
 
@@ -327,38 +380,41 @@
 
     </div>
 
-    <!-- VIEW 6: SUBMISSION SUCCESS RECEIPT -->
-    <div id="screen-success" class="hidden bg-white rounded-3xl p-7 sm:p-10 border border-slate-200/90 shadow-card text-center anim-fade">
+    <!-- VIEW 6: FINAL CONFIRMATION & RECEIPT -->
+    <div id="screen-success" class="hidden bg-white rounded-3xl p-7 sm:p-10 border border-slate-200/90 shadow-card-elevated text-center anim-spring">
       
-      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-4 border border-brand-200 shadow-inner">
-        <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-brand-50 to-emerald-100 text-brand-700 flex items-center justify-center mx-auto mb-4 border border-brand-200 shadow-inner">
+        <svg class="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
 
       <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Feedback Submitted!</h2>
       <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-2 leading-relaxed">
-        Thank you for your valuable feedback. Your responses are recorded anonymously to improve educational excellence.
+        Thank you for submitting your evaluation for <strong>Maulana Azad Polytechnic, Solapur</strong>. Your response is recorded anonymously.
       </p>
 
-      <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 max-w-xs mx-auto text-left text-xs space-y-2">
+      <div class="mt-6 p-5 rounded-2xl bg-slate-50 border border-slate-200/80 max-w-xs mx-auto text-left text-xs space-y-2.5">
         <div class="flex justify-between items-center text-slate-500">
-          <span>Enrollment Number:</span>
+          <span>Enrollment ID:</span>
           <span id="success-enrollment" class="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">--</span>
         </div>
         <div class="flex justify-between items-center text-slate-500">
-          <span>Recorded At:</span>
-          <span id="success-time" class="font-medium text-slate-800">--</span>
+          <span>Submission Time:</span>
+          <span id="success-time" class="font-mono font-semibold text-slate-800">--</span>
         </div>
         <div class="flex justify-between items-center text-slate-500">
           <span>Status:</span>
-          <span class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Verified & Sealed</span>
+          <span class="font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-[11px]">
+            Verified & Recorded
+          </span>
         </div>
       </div>
 
       <div class="mt-8 flex justify-center">
-        <button onclick="window.location.reload()" class="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm">
-          Submit Another or Refresh
+        <button onclick="window.location.reload()" class="px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Submit Another / Done</span>
         </button>
       </div>
 
@@ -366,26 +422,29 @@
 
   </main>
 
-  <footer class="mt-auto pt-6 pb-2 px-4 border-t border-slate-200/70 bg-white/50 text-center text-xs text-slate-500">
+  <footer class="mt-auto pt-6 pb-2 px-4 border-t border-slate-200/70 bg-white/60 text-center text-xs text-slate-500">
     <div class="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 font-medium">
-      <div>© Maulana Azad Polytechnic, Solapur • Student Portal</div>
-      <div class="text-emerald-800 font-bold">معاویہ 『AM』</div>
+      <div>© Maulana Azad Polytechnic, Solapur • Academic Quality Assurance</div>
+      <div class="text-brand-800 font-bold font-mono tracking-wide">معاویہ 『AM』</div>
     </div>
   </footer>
 
   <script>
     /**
      * STUDENT FEEDBACK CLIENT APPLICATION
+     * Maulana Azad Polytechnic, Solapur
      * Backend Endpoint: https://feedback-297a.onrender.com
      */
     const API_BASE = 'https://feedback-297a.onrender.com';
 
+    // Application State Management
     const AppState = {
       token: null,
       formData: null,
       enrollmentNumber: '',
       currentTeacherIndex: 0,
-      responses: {}
+      responses: {},
+      isSubmitting: false
     };
 
     const RATING_EMOJIS = {
@@ -397,59 +456,59 @@
     };
 
     const RATING_DESCRIPTIONS = {
-      1: 'Unsatisfactory',
-      2: 'Satisfactory',
+      1: 'Poor',
+      2: 'Fair',
       3: 'Good',
       4: 'Very Good',
       5: 'Excellent'
     };
 
     /**
-     * Extracts token from any format:
-     * - /feedback/288cfd89f05618366a88d9d4e3d24856fdd68831640aeec2
-     * - /feedback/288cf.../
-     * - Full URL pasted into the input field
-     * - ?token=... or ?t=...
-     * - Hash #/feedback/...
+     * Extracts token reliably from:
+     * - /feedback/:token
+     * - /student/:token
+     * - Query parameters ?token=... or ?t=...
+     * - Hash routing #/feedback/...
+     * - Raw hex strings
      */
     function extractTokenFromText(rawText) {
       if (!rawText || typeof rawText !== 'string') return null;
       let clean = rawText.trim();
       try { clean = decodeURIComponent(clean); } catch (e) {}
 
-      // Pattern 1: /feedback/:token
+      // Match /feedback/:token
       const p1 = clean.match(/\/feedback\/([a-zA-Z0-9_-]{16,64})/i);
       if (p1 && p1[1]) return p1[1].toLowerCase();
 
-      // Pattern 2: /student/:token
+      // Match /student/:token
       const p2 = clean.match(/\/student\/([a-zA-Z0-9_-]{16,64})/i);
       if (p2 && p2[1]) return p2[1].toLowerCase();
 
-      // Pattern 3: query string ?token= or &token=
+      // Match query params
       const p3 = clean.match(/[?&](?:token|t|id)=([a-zA-Z0-9_-]{16,64})/i);
       if (p3 && p3[1]) return p3[1].toLowerCase();
 
-      // Pattern 4: hash route #...
+      // Match hash router
       const p4 = clean.match(/#(?:\/feedback\/|\/student\/|token=)?([a-zA-Z0-9_-]{16,64})/i);
       if (p4 && p4[1]) return p4[1].toLowerCase();
 
-      // Pattern 5: standalone 24-64 hex character string
-      const p5 = clean.match(/\b([a-fA-F0-9]{24,64})\b/);
+      // Match standalone hex string (min 20 characters)
+      const p5 = clean.match(/\b([a-fA-F0-9]{20,64})\b/);
       if (p5 && p5[1]) return p5[1].toLowerCase();
 
       return null;
     }
 
     function detectTokenFromLocation() {
-      // 1. Pathname check
+      // 1. Check Pathname
       const pathToken = extractTokenFromText(window.location.pathname);
       if (pathToken) return pathToken;
 
-      // 2. Full URL check
+      // 2. Check Entire URL
       const hrefToken = extractTokenFromText(window.location.href);
       if (hrefToken) return hrefToken;
 
-      // 3. Query string check
+      // 3. Check Query parameters
       try {
         const sp = new URLSearchParams(window.location.search);
         const qToken = sp.get('token') || sp.get('t') || sp.get('id');
@@ -459,13 +518,13 @@
         }
       } catch (e) {}
 
-      // 4. Hash fragment check
+      // 4. Check Hash
       if (window.location.hash) {
         const hToken = extractTokenFromText(window.location.hash);
         if (hToken) return hToken;
       }
 
-      // 5. Inspect individual segments
+      // 5. Segments
       const segs = window.location.pathname.split('/').filter(Boolean);
       for (let i = 0; i < segs.length; i++) {
         if (segs[i] === 'feedback' || segs[i] === 'student') {
@@ -481,6 +540,7 @@
       return null;
     }
 
+    // Switch visible screen smoothly
     function setScreen(screenId) {
       const screens = [
         'screen-loading',
@@ -503,6 +563,7 @@
       });
     }
 
+    // Modern custom toast notification (no alert() popup)
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -514,16 +575,16 @@
         warning: 'bg-amber-600 text-white shadow-amber-600/30 border border-amber-500'
       };
 
-      toast.className = `p-3.5 rounded-2xl shadow-xl text-xs font-semibold flex items-center justify-between pointer-events-auto anim-fade ${styles[type] || styles.info}`;
+      toast.className = `p-3.5 rounded-2xl shadow-xl text-xs font-semibold flex items-center justify-between pointer-events-auto anim-spring ${styles[type] || styles.info}`;
       toast.innerHTML = `
         <div class="flex items-center gap-2">
           <span>${escapeHtml(message)}</span>
         </div>
-        <button class="ml-3 hover:opacity-75 font-bold text-sm px-1" onclick="this.parentElement.remove()">✕</button>
+        <button type="button" class="ml-3 hover:opacity-75 font-bold text-sm px-1.5 focus:outline-none" onclick="this.parentElement.remove()">✕</button>
       `;
 
       container.appendChild(toast);
-      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4000);
+      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3800);
     }
 
     function escapeHtml(str) {
@@ -533,10 +594,7 @@
       }[m]));
     }
 
-    function escapeQuotes(str) {
-      return (str || '').replace(/'/g, "\\'");
-    }
-
+    // Fetch survey form configuration
     async function loadSurveyForm(token) {
       const cleanToken = extractTokenFromText(token);
       if (!cleanToken) {
@@ -547,13 +605,16 @@
       AppState.token = cleanToken;
       setScreen('screen-loading');
 
-      document.getElementById('loading-subtext').textContent = `Token: ${cleanToken.substring(0, 10)}... Connecting to server...`;
+      const subtext = document.getElementById('loading-subtext');
+      if (subtext) {
+        subtext.textContent = `Token: ${cleanToken.substring(0, 8)}... • Connecting to server`;
+      }
 
-      // Show Render free tier wake-up notice if request takes > 2.5s
+      // Show standby warning if Render free service takes > 2.5s
       const coldStartTimer = setTimeout(() => {
         const alert = document.getElementById('render-spin-alert');
         if (alert) alert.classList.remove('hidden');
-      }, 2500);
+      }, 2400);
 
       try {
         const res = await fetch(`${API_BASE}/api/public/forms/${cleanToken}`, {
@@ -565,7 +626,7 @@
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          throw new Error(data.error || 'Feedback form unavailable or closed');
+          throw new Error(data.error || 'Feedback session unavailable or expired.');
         }
 
         AppState.formData = data.form;
@@ -592,9 +653,9 @@
     function initializeEnrollmentScreen() {
       const f = AppState.formData;
       document.getElementById('meta-dept').textContent = f.department || 'Department';
-      document.getElementById('meta-sem').textContent = f.semester || 'Semester';
-      document.getElementById('meta-class').textContent = `${f.className} Faculty Feedback`;
-      document.getElementById('meta-academic-year').textContent = f.academicYear ? `AY: ${f.academicYear}` : 'Current Session';
+      document.getElementById('meta-sem').textContent = f.semester ? `Semester ${f.semester}` : 'Semester';
+      document.getElementById('meta-class').textContent = `${f.className || 'Class'} Faculty Feedback`;
+      document.getElementById('meta-academic-year').textContent = f.academicYear ? `AY: ${f.academicYear}` : 'Academic Year';
       document.getElementById('meta-faculty-count').textContent = `${f.teachers.length} Faculty Members`;
 
       AppState.responses = {};
@@ -609,6 +670,7 @@
       }, 150);
     }
 
+    // Enrollment Number Submission & Server Check
     document.getElementById('enrollment-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const enrollmentInput = document.getElementById('input-enrollment');
@@ -653,11 +715,16 @@
 
     function startFeedbackQuestions() {
       AppState.currentTeacherIndex = 0;
-      renderActiveTeacherCard();
+      renderActiveTeacherCard(true); // First time render -> can scroll to top
       setScreen('screen-feedback');
     }
 
-    function renderActiveTeacherCard() {
+    /**
+     * CRITICAL FIX:
+     * Only call window.scrollTo when navigating between teachers (shouldScroll = true).
+     * NEVER scroll when tapping an opinion / rating option!
+     */
+    function renderActiveTeacherCard(shouldScroll = false) {
       const teachers = AppState.formData.teachers;
       const topics = AppState.formData.topics;
       const index = AppState.currentTeacherIndex;
@@ -666,7 +733,7 @@
       document.getElementById('active-teacher-initials').textContent = getInitials(teacher.name);
       document.getElementById('active-teacher-name').textContent = teacher.name;
       document.getElementById('active-teacher-subject').textContent = teacher.subject;
-      document.getElementById('teacher-progress-badge').textContent = `Teacher ${index + 1} of ${teachers.length}`;
+      document.getElementById('teacher-progress-badge').textContent = `Faculty ${index + 1} of ${teachers.length}`;
 
       const pct = Math.round(((index + 1) / teachers.length) * 100);
       document.getElementById('progress-bar-fill').style.width = `${pct}%`;
@@ -679,40 +746,56 @@
       if (index === teachers.length - 1) {
         nextBtnText.textContent = 'Submit Final Feedback';
       } else {
-        nextBtnText.textContent = 'Next Teacher';
+        nextBtnText.textContent = 'Next Faculty Member';
       }
+
+      updateTeacherQuestionCounter();
 
       const container = document.getElementById('active-topics-list');
       container.innerHTML = '';
 
       topics.forEach((topic, tIdx) => {
         const currentRating = AppState.responses[teacher.id]?.[topic] || 0;
+        const topicCard = document.createElement('div');
+        topicCard.id = `topic-card-${tIdx}`;
+        topicCard.className = `p-4 sm:p-5 rounded-2xl border transition-all duration-200 ${
+          currentRating > 0 
+            ? 'bg-emerald-50/40 border-emerald-200/90' 
+            : 'bg-slate-50/70 border-slate-200/80 hover:border-slate-300'
+        }`;
 
-        const topicBox = document.createElement('div');
-        topicBox.className = 'p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3';
-        topicBox.innerHTML = `
-          <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-xl bg-white text-slate-700 text-xs font-bold flex items-center justify-center shrink-0 border border-slate-200/80 shadow-xs">
-              ${tIdx + 1}
-            </span>
-            <div class="font-bold text-xs sm:text-sm text-slate-800 leading-snug pt-0.5">
-              ${escapeHtml(topic)}
+        topicCard.innerHTML = `
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-xl ${currentRating > 0 ? 'bg-brand-700 text-white' : 'bg-white text-slate-700'} text-xs font-black flex items-center justify-center shrink-0 border border-slate-200 shadow-xs transition">
+                ${currentRating > 0 ? '✓' : (tIdx + 1)}
+              </span>
+              <div class="font-bold text-xs sm:text-sm text-slate-900 leading-snug pt-0.5">
+                ${escapeHtml(topic)}
+              </div>
             </div>
+            ${currentRating > 0 ? `
+              <span class="text-[11px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200/70 shrink-0 font-mono">
+                ${RATING_DESCRIPTIONS[currentRating]}
+              </span>` : ''}
           </div>
 
-          <div class="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1">
+          <div class="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1" id="rating-group-${tIdx}">
             ${[1, 2, 3, 4, 5].map(rating => {
               const isSelected = currentRating === rating;
               return `
-                <button type="button" onclick="selectTopicRating('${teacher.id}', '${escapeQuotes(topic)}', ${rating})"
-                  class="rating-btn py-2.5 sm:py-3 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 ${
+                <button type="button" 
+                  data-tidx="${tIdx}" 
+                  data-rating="${rating}"
+                  onclick="handleRatingSelection(event, '${teacher.id}', ${tIdx}, ${rating})"
+                  class="rating-touch-btn py-2.5 sm:py-3 px-1 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 cursor-pointer select-none ${
                     isSelected 
-                      ? 'bg-brand-700 text-white border-brand-700 shadow-btn scale-[1.02]' 
+                      ? 'bg-brand-700 text-white border-brand-700 shadow-md shadow-brand-800/25 scale-[1.03]' 
                       : 'bg-white text-slate-700 border-slate-200 hover:border-brand-500 hover:bg-emerald-50/50'
                   }">
-                  <span class="text-sm sm:text-base">${RATING_EMOJIS[rating]}</span>
-                  <span class="font-black text-xs sm:text-sm">${rating}</span>
-                  <span class="hidden sm:inline text-[9px] uppercase tracking-tighter ${isSelected ? 'text-white/80' : 'text-slate-400'}">
+                  <span class="text-sm sm:text-base pointer-events-none">${RATING_EMOJIS[rating]}</span>
+                  <span class="font-black text-xs sm:text-sm pointer-events-none">${rating}</span>
+                  <span class="hidden sm:inline text-[9px] font-bold uppercase tracking-tight pointer-events-none ${isSelected ? 'text-white/80' : 'text-slate-400'}">
                     ${RATING_DESCRIPTIONS[rating]}
                   </span>
                 </button>
@@ -720,10 +803,83 @@
             }).join('')}
           </div>
         `;
-        container.appendChild(topicBox);
+        container.appendChild(topicCard);
       });
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // ONLY scroll to top when changing teachers, NOT when selecting answers
+      if (shouldScroll) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    /**
+     * IN-PLACE RATING SELECTION
+     * Fixes the page jumping / automatic scroll-to-top bug.
+     * Updates ONLY the clicked question's DOM state without refreshing or scrolling!
+     */
+    window.handleRatingSelection = function(event, teacherId, topicIndex, rating) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      const topic = AppState.formData.topics[topicIndex];
+      if (!AppState.responses[teacherId]) {
+        AppState.responses[teacherId] = {};
+      }
+      AppState.responses[teacherId][topic] = rating;
+
+      // Update question card styling locally
+      const topicCard = document.getElementById(`topic-card-${topicIndex}`);
+      if (topicCard) {
+        topicCard.className = 'p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-emerald-50/40 border-emerald-200/90';
+        
+        // Update number badge to checkmark
+        const badge = topicCard.querySelector('span');
+        if (badge) {
+          badge.className = 'w-6 h-6 rounded-xl bg-brand-700 text-white text-xs font-black flex items-center justify-center shrink-0 border border-slate-200 shadow-xs transition';
+          badge.textContent = '✓';
+        }
+
+        // Update rating buttons in-place
+        const ratingGroup = document.getElementById(`rating-group-${topicIndex}`);
+        if (ratingGroup) {
+          const buttons = ratingGroup.querySelectorAll('button');
+          buttons.forEach(btn => {
+            const btnRating = Number(btn.getAttribute('data-rating'));
+            const isSelected = btnRating === rating;
+            btn.className = `rating-touch-btn py-2.5 sm:py-3 px-1 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 cursor-pointer select-none ${
+              isSelected 
+                ? 'bg-brand-700 text-white border-brand-700 shadow-md shadow-brand-800/25 scale-[1.03]' 
+                : 'bg-white text-slate-700 border-slate-200 hover:border-brand-500 hover:bg-emerald-50/50'
+            }`;
+            const descSpan = btn.querySelector('span:last-child');
+            if (descSpan) {
+              descSpan.className = `hidden sm:inline text-[9px] font-bold uppercase tracking-tight pointer-events-none ${isSelected ? 'text-white/80' : 'text-slate-400'}`;
+            }
+          });
+        }
+      }
+
+      updateTeacherQuestionCounter();
+    };
+
+    function updateTeacherQuestionCounter() {
+      const teachers = AppState.formData.teachers;
+      const topics = AppState.formData.topics;
+      const activeTeacher = teachers[AppState.currentTeacherIndex];
+      const answeredObj = AppState.responses[activeTeacher.id] || {};
+      const answeredCount = Object.keys(answeredObj).length;
+
+      const label = document.getElementById('answered-counter-label');
+      if (label) {
+        label.textContent = `${answeredCount} / ${topics.length}`;
+        if (answeredCount === topics.length) {
+          label.classList.add('text-emerald-800');
+        } else {
+          label.classList.remove('text-emerald-800');
+        }
+      }
     }
 
     function getInitials(name) {
@@ -738,46 +894,58 @@
         .join('') || 'PR';
     }
 
-    window.selectTopicRating = function(teacherId, topic, rating) {
-      if (!AppState.responses[teacherId]) {
-        AppState.responses[teacherId] = {};
-      }
-      AppState.responses[teacherId][topic] = rating;
-      renderActiveTeacherCard();
-    };
-
+    // Next Teacher Button Click
     document.getElementById('btn-next-teacher').addEventListener('click', () => {
       const teachers = AppState.formData.teachers;
       const topics = AppState.formData.topics;
       const activeTeacher = teachers[AppState.currentTeacherIndex];
       const answeredTopics = AppState.responses[activeTeacher.id] || {};
 
-      for (const topic of topics) {
+      for (let i = 0; i < topics.length; i++) {
+        const topic = topics[i];
         if (!answeredTopics[topic]) {
-          showToast(`Please rate: "${topic}"`, 'warning');
+          showToast(`Please rate parameter ${i + 1}: "${topic}"`, 'warning');
+          // Smooth scroll specifically to the missing card
+          const unansCard = document.getElementById(`topic-card-${i}`);
+          if (unansCard) {
+            unansCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            unansCard.classList.add('ring-2', 'ring-amber-500');
+            setTimeout(() => unansCard.classList.remove('ring-2', 'ring-amber-500'), 1500);
+          }
           return;
         }
       }
 
       if (AppState.currentTeacherIndex < teachers.length - 1) {
         AppState.currentTeacherIndex++;
-        renderActiveTeacherCard();
+        renderActiveTeacherCard(true); // Scroll to top for the new teacher
       } else {
         submitCompleteFeedback();
       }
     });
 
+    // Previous Teacher Button Click
     document.getElementById('btn-prev-teacher').addEventListener('click', () => {
       if (AppState.currentTeacherIndex > 0) {
         AppState.currentTeacherIndex--;
-        renderActiveTeacherCard();
+        renderActiveTeacherCard(true); // Scroll to top for previous teacher
       }
     });
 
+    // Final Submission
     async function submitCompleteFeedback() {
+      if (AppState.isSubmitting) return;
+
       const btn = document.getElementById('btn-next-teacher');
+      AppState.isSubmitting = true;
       btn.disabled = true;
-      btn.innerHTML = `<span>Submitting feedback...</span>`;
+      btn.innerHTML = `
+        <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Securing & Submitting...</span>
+      `;
 
       const teacherResponses = AppState.formData.teachers.map(t => {
         const answersObj = AppState.responses[t.id];
@@ -812,17 +980,20 @@
 
         document.getElementById('success-enrollment').textContent = AppState.enrollmentNumber;
         document.getElementById('success-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date().toLocaleDateString();
+        
         setScreen('screen-success');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
         if (window.confetti) {
           confetti({
-            particleCount: 75,
-            spread: 60,
+            particleCount: 90,
+            spread: 70,
             origin: { y: 0.6 }
           });
         }
       } catch (err) {
         showToast(err.message, 'error');
+        AppState.isSubmitting = false;
         btn.disabled = false;
         btn.innerHTML = `
           <span>Submit Final Feedback</span>
@@ -831,13 +1002,13 @@
       }
     }
 
-    // Manual Token Form Handler
+    // Manual Token Input Handler
     document.getElementById('manual-token-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const raw = document.getElementById('manual-input').value.trim();
       const extracted = extractTokenFromText(raw);
       if (!extracted) {
-        showToast('Invalid link format. Please check the survey link.', 'warning');
+        showToast('Invalid link or token format. Please check the survey link.', 'warning');
         return;
       }
       loadSurveyForm(extracted);
@@ -849,11 +1020,12 @@
         const res = await fetch(`${API_BASE}/api/health`);
         if (res.ok) {
           const el = document.getElementById('server-status-label');
-          if (el) el.textContent = 'Online';
+          if (el) el.textContent = 'Server Online';
         }
       } catch (e) {}
     }
 
+    // App Initialization
     function initStudentApp() {
       checkServerHealth();
 
@@ -875,4 +1047,3 @@
   </script>
 </body>
 </html>
-
